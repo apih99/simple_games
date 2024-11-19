@@ -8,12 +8,12 @@ const HomeContainer = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #ffd6e6;
+  background-color: #40E0D0;
   font-family: 'Comic Sans MS', cursive;
 `;
 
 const Title = styled.h1`
-  color: #ff69b4;
+  color: #008B8B;
   font-size: 3rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
@@ -27,17 +27,18 @@ const GameGrid = styled.div`
 `;
 
 const GameCard = styled(Link)`
-  background-color: white;
+  background-color: #E0FFFF;
   border-radius: 20px;
   padding: 2rem;
   text-align: center;
   text-decoration: none;
-  color: #ff69b4;
+  color: #20B2AA;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
 
   &:hover {
     transform: translateY(-5px);
+    background-color: #B0E0E6;
   }
 
   h2 {

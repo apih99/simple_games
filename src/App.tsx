@@ -7,7 +7,7 @@ import styled from 'styled-components';
 const AppContainer = styled.div`
   width: 100%;
   min-height: 100vh;
-  background-color: #ffd6e6;
+  background-color: #40E0D0;
 `;
 
 function App() {

@@ -125,6 +125,20 @@ const Title = styled.h1`
   }
 `;
 
+const Footer = styled.div`
+  color: ${theme.colors.text.secondary};
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-top: 1.5rem;
+  }
+`;
+
 const HomeContainer = styled.div`
   min-height: 100vh;
   width: 100%;
@@ -190,6 +204,7 @@ const Home: React.FC = () => {
         ))}
       </GamesGrid>
       <AudioControls game="menu" />
+      <Footer>Created by apih99</Footer>
     </HomeContainer>
   );
 };

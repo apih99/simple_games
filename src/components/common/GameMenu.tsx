@@ -100,38 +100,13 @@ const Button = styled.button`
   }
 `;
 
-const DifficultySelect = styled.select`
-  width: 100%;
-  padding: 1rem;
-  border: none;
-  border-radius: ${theme.borderRadius.medium};
-  background: ${theme.colors.background.secondary};
-  color: ${theme.colors.text.primary};
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: ${theme.transitions.default};
-  box-shadow: ${theme.shadows.medium};
-  appearance: none;
+const Footer = styled.div`
+  color: ${theme.colors.text.secondary};
+  font-size: 0.9rem;
   text-align: center;
-
-  &:focus {
-    outline: none;
-    box-shadow: ${theme.shadows.glow};
-  }
-
-  @media (max-width: 768px) {
-    padding: 0.9rem;
-    font-size: 1.1rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0.8rem;
-    font-size: 1rem;
-  }
-
-  option {
-    background: ${theme.colors.background.primary};
-  }
+  margin-top: 1rem;
+  opacity: 0.8;
+  font-style: italic;
 `;
 
 interface GameMenuProps {
@@ -164,8 +139,7 @@ const GameMenu: React.FC<GameMenuProps> = ({
   return (
     <MenuOverlay isVisible={isVisible}>
       <MenuCard isVisible={isVisible}>
-        <Title>{isGameOver ? 'Game Over!' : gameTitle}</Title>
-        
+        <Title>{gameTitle}</Title>
         {(score !== undefined || highScore !== undefined) && (
           <div>
             {score !== undefined && (
@@ -176,29 +150,24 @@ const GameMenu: React.FC<GameMenuProps> = ({
             )}
           </div>
         )}
-
-        {showDifficulty && onDifficultyChange && (
-          <DifficultySelect value={difficulty} onChange={(e) => onDifficultyChange(e.target.value as 'Easy' | 'Medium' | 'Hard')}>
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-          </DifficultySelect>
-        )}
-
         <ButtonGroup>
-          {isGameOver ? (
-            <Button onClick={onRestart}>
-              Play Again
-            </Button>
-          ) : (
-            <Button onClick={onStart}>
-              {score !== undefined ? 'Restart' : 'Start Game'}
+          {!isGameOver && <Button onClick={onStart}>Start Game</Button>}
+          {isGameOver && onRestart && <Button onClick={onRestart}>Play Again</Button>}
+          {showDifficulty && difficulty && onDifficultyChange && (
+            <Button
+              onClick={() => {
+                const difficulties: ('Easy' | 'Medium' | 'Hard')[] = ['Easy', 'Medium', 'Hard'];
+                const currentIndex = difficulties.indexOf(difficulty);
+                const nextIndex = (currentIndex + 1) % difficulties.length;
+                onDifficultyChange(difficulties[nextIndex]);
+              }}
+            >
+              Difficulty: {difficulty}
             </Button>
           )}
-          <Button onClick={onHome}>
-            Back to Home
-          </Button>
+          <Button onClick={onHome}>Back to Home</Button>
         </ButtonGroup>
+        <Footer>Created by apih99 2024</Footer>
       </MenuCard>
     </MenuOverlay>
   );

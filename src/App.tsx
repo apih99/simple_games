@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import styled from 'styled-components';
 import Home from './components/Home/Home';
@@ -7,6 +7,7 @@ import TicTacToe from './components/TicTacToe/TicTacToe';
 import Tetris from './components/Tetris/Tetris';
 import FlappyBird from './components/FlappyBird/FlappyBird';
 import Minesweeper from './components/Minesweeper/Minesweeper';
+import { audioManager } from './utils/audio';
 
 const AppContainer = styled.div`
   width: 100%;
@@ -15,6 +16,11 @@ const AppContainer = styled.div`
 `;
 
 const App: React.FC = () => {
+  useEffect(() => {
+    // Start playing background music when app loads
+    audioManager.playGameMusic('menu');
+  }, []);
+
   return (
     <Router>
       <AppContainer>

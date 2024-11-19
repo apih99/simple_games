@@ -1,10 +1,10 @@
 // Background music URLs - using direct MP3 files that are more reliable
 export const GAME_MUSIC = {
-  menu: 'https://dl.dropboxusercontent.com/s/h4ztw6qnqwttxyn/menu.mp3',
-  snake: 'https://dl.dropboxusercontent.com/s/hv1tqxlpt9gn0fa/snake.mp3',
-  tetris: 'https://dl.dropboxusercontent.com/s/h7wxu7c5k3bz0y7/tetris.mp3',
-  flappyBird: 'https://dl.dropboxusercontent.com/s/jazkbmwvps6dl7f/flappybird.mp3',
-  ticTacToe: 'https://dl.dropboxusercontent.com/s/gy9xwsn5srh0671/tictactoe.mp3'
+  menu: require('./back-music.wav'),
+  snake: require('./back-music.wav'),
+  tetris: require('./back-music.wav'),
+  flappyBird: require('./back-music.wav'),
+  ticTacToe: require('./back-music.wav')
 };
 
 class AudioManager {
@@ -19,7 +19,7 @@ class AudioManager {
     // Pre-load all audio files
     Object.values(GAME_MUSIC).forEach(url => {
       const audio = new Audio();
-      audio.src = url;
+      audio.src = typeof url === 'string' ? url : URL.createObjectURL(url);
       audio.load();
     });
   }
@@ -42,7 +42,8 @@ class AudioManager {
       }
 
       // Create and configure new audio
-      this.audio = new Audio(GAME_MUSIC[game]);
+      const url = GAME_MUSIC[game];
+      this.audio = new Audio(typeof url === 'string' ? url : URL.createObjectURL(url));
       this.audio.volume = this.volume;
       this.audio.loop = true;
       this.audio.muted = this.isMuted;

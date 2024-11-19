@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
+import { theme } from '../../styles/theme';
+import AudioControls from '../common/AudioControls';
 import { useNavigate } from 'react-router-dom';
 
 const GameContainer = styled.div`
@@ -7,9 +9,24 @@ const GameContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #1a0011 0%, #3d0a2c 100%);
   min-height: 100vh;
-  background-color: #40E0D0;
-  font-family: 'Comic Sans MS', cursive;
+  position: relative;
+`;
+
+const MenuContainer = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(61, 10, 44, 0.95);
+  padding: 2rem;
+  border-radius: ${theme.borderRadius.large};
+  box-shadow: 0 0 20px rgba(255, 182, 193, 0.3);
+  text-align: center;
+  min-width: 300px;
+  backdrop-filter: blur(10px);
 `;
 
 const GameBoard = styled.div`
@@ -17,96 +34,109 @@ const GameBoard = styled.div`
   grid-template-columns: repeat(20, 20px);
   grid-template-rows: repeat(20, 20px);
   gap: 1px;
-  background-color: #48D1CC;
-  border: 10px solid #20B2AA;
-  border-radius: 10px;
+  background: rgba(61, 10, 44, 0.8);
   padding: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: ${theme.borderRadius.large};
+  box-shadow: 0 0 30px rgba(255, 182, 193, 0.2);
 `;
 
 const Cell = styled.div<{ isSnake?: boolean; isFood?: boolean }>`
   width: 20px;
   height: 20px;
-  border-radius: 5px;
+  border-radius: 4px;
   background-color: ${({ isSnake, isFood }) =>
-    isSnake ? '#20B2AA' : isFood ? '#98FF98' : '#E0FFFF'};
-  ${({ isSnake }) =>
-    isSnake &&
-    `
-    box-shadow: 0 0 5px rgba(32, 178, 170, 0.5);
-  `}
+    isSnake
+      ? '#ff69b4'
+      : isFood
+      ? '#ff1493'
+      : 'rgba(26, 0, 17, 0.6)'};
+  transition: background-color 0.1s ease;
+  box-shadow: ${({ isSnake, isFood }) =>
+    isSnake || isFood ? '0 0 5px rgba(255, 182, 193, 0.5)' : 'none'};
 `;
 
 const Score = styled.div`
   font-size: 2rem;
-  color: #008B8B;
+  color: #ff69b4;
   margin: 1rem 0;
+  text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
 `;
 
-const MenuOverlay = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(224, 255, 255, 0.95);
-  padding: 2rem;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+const GameOver = styled(MenuContainer)`
+  h2 {
+    color: #ff69b4;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+  }
+`;
+
+const MenuTitle = styled.h1`
+  color: #ff69b4;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
 `;
 
 const Button = styled.button`
-  background-color: #20B2AA;
+  padding: 0.8rem 1.5rem;
+  margin: 0.5rem;
+  background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
+  border-radius: ${theme.borderRadius.medium};
   cursor: pointer;
-  font-family: inherit;
-  font-size: 1.2rem;
-  margin: 0.5rem;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background-color: #008B8B;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
-const Controls = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+const DifficultyButton = styled(Button)<{ isSelected?: boolean }>`
+  background: ${({ isSelected }) =>
+    isSelected
+      ? 'linear-gradient(135deg, #ff1493 0%, #ff69b4 100%)'
+      : 'linear-gradient(135deg, #3d0a2c 0%, #1a0011 100%)'};
+  border: 2px solid #ff69b4;
+  opacity: ${({ isSelected }) => (isSelected ? 1 : 0.7)};
 `;
 
-const SpeedControl = styled.div`
+const HighScore = styled.div`
+  color: #ff69b4;
+  font-size: 1.2rem;
   margin: 1rem 0;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-
-  select {
-    padding: 0.5rem;
-    border-radius: 5px;
-    border: 2px solid #20B2AA;
-    background-color: #E0FFFF;
-    font-family: inherit;
-  }
+  text-shadow: 0 0 5px rgba(255, 105, 180, 0.3);
 `;
 
-type Position = {
-  x: number;
-  y: number;
+type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+type Position = { x: number; y: number };
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+const difficultySettings = {
+  easy: { speed: 200, points: 1 },
+  medium: { speed: 150, points: 2 },
+  hard: { speed: 100, points: 3 },
 };
 
 const Snake: React.FC = () => {
+  const navigate = useNavigate();
   const [snake, setSnake] = useState<Position[]>([{ x: 10, y: 10 }]);
   const [food, setFood] = useState<Position>({ x: 5, y: 5 });
-  const [direction, setDirection] = useState<string>('RIGHT');
-  const [gameOver, setGameOver] = useState<boolean>(false);
-  const [score, setScore] = useState<number>(0);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [showMenu, setShowMenu] = useState<boolean>(true);
-  const [speed, setSpeed] = useState<number>(100);
-  const navigate = useNavigate();
+  const [direction, setDirection] = useState<Direction>('RIGHT');
+  const [gameOver, setGameOver] = useState(false);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const gameLoopRef = useRef<number>();
 
   const generateFood = useCallback(() => {
     const x = Math.floor(Math.random() * 20);
@@ -114,77 +144,49 @@ const Snake: React.FC = () => {
     setFood({ x, y });
   }, []);
 
-  const resetGame = () => {
+  const startGame = () => {
     setSnake([{ x: 10, y: 10 }]);
     setDirection('RIGHT');
     setGameOver(false);
     setScore(0);
-    setIsPaused(false);
-    setShowMenu(false);
+    setIsPlaying(true);
     generateFood();
   };
 
-  const togglePause = () => {
-    setIsPaused(!isPaused);
-    setShowMenu(!isPaused);
+  const returnToMenu = () => {
+    setGameOver(false);
+    setIsPlaying(false);
+    setSnake([{ x: 10, y: 10 }]);
+    setDirection('RIGHT');
+    setScore(0);
+    if (gameLoopRef.current) {
+      clearInterval(gameLoopRef.current);
+    }
   };
 
-  const handleSpeedChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSpeed(Number(event.target.value));
+  const pauseGame = () => {
+    setIsPlaying(false);
+    if (gameLoopRef.current) {
+      clearInterval(gameLoopRef.current);
+    }
   };
 
-  const checkCollision = (head: Position) => {
-    if (
-      head.x < 0 ||
-      head.x >= 20 ||
-      head.y < 0 ||
-      head.y >= 20 ||
-      snake.some((segment) => segment.x === head.x && segment.y === head.y)
-    ) {
+  const resumeGame = () => {
+    setIsPlaying(true);
+  };
+
+  const checkCollision = (head: Position): boolean => {
+    if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20) {
       return true;
     }
-    return false;
+    return snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y);
   };
 
-  const handleExit = () => {
-    navigate('/');
-  };
+  const moveSnake = useCallback(() => {
+    if (gameOver || !isPlaying) return;
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        togglePause();
-        return;
-      }
-
-      if (!isPaused && !gameOver) {
-        switch (e.key) {
-          case 'ArrowUp':
-            if (direction !== 'DOWN') setDirection('UP');
-            break;
-          case 'ArrowDown':
-            if (direction !== 'UP') setDirection('DOWN');
-            break;
-          case 'ArrowLeft':
-            if (direction !== 'RIGHT') setDirection('LEFT');
-            break;
-          case 'ArrowRight':
-            if (direction !== 'LEFT') setDirection('RIGHT');
-            break;
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [direction, isPaused, gameOver]);
-
-  useEffect(() => {
-    if (gameOver || isPaused) return;
-
-    const moveSnake = () => {
-      const newSnake = [...snake];
-      const head = { ...newSnake[0] };
+    setSnake((prevSnake) => {
+      const head = { ...prevSnake[0] };
 
       switch (direction) {
         case 'UP':
@@ -203,41 +205,103 @@ const Snake: React.FC = () => {
 
       if (checkCollision(head)) {
         setGameOver(true);
-        setShowMenu(true);
-        return;
+        if (score > highScore) {
+          setHighScore(score);
+        }
+        return prevSnake;
       }
 
-      newSnake.unshift(head);
+      const newSnake = [head, ...prevSnake];
 
       if (head.x === food.x && head.y === food.y) {
-        setScore((prev) => prev + 1);
+        setScore(prev => prev + difficultySettings[difficulty].points);
         generateFood();
       } else {
         newSnake.pop();
       }
 
-      setSnake(newSnake);
+      return newSnake;
+    });
+  }, [direction, food, gameOver, isPlaying, generateFood, score, highScore, difficulty]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!isPlaying) return;
+      
+      switch (e.key) {
+        case 'ArrowUp':
+          if (direction !== 'DOWN') setDirection('UP');
+          break;
+        case 'ArrowDown':
+          if (direction !== 'UP') setDirection('DOWN');
+          break;
+        case 'ArrowLeft':
+          if (direction !== 'RIGHT') setDirection('LEFT');
+          break;
+        case 'ArrowRight':
+          if (direction !== 'LEFT') setDirection('RIGHT');
+          break;
+        case 'Escape':
+          setIsPlaying(prev => !prev);
+          break;
+      }
     };
 
-    const gameInterval = setInterval(moveSnake, speed);
-    return () => clearInterval(gameInterval);
-  }, [snake, direction, food, gameOver, isPaused, speed, generateFood]);
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [direction, isPlaying]);
+
+  useEffect(() => {
+    if (isPlaying && !gameOver) {
+      gameLoopRef.current = window.setInterval(moveSnake, difficultySettings[difficulty].speed);
+      return () => {
+        if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+      };
+    }
+  }, [moveSnake, isPlaying, gameOver, difficulty]);
+
+  const exitGame = () => {
+    if (gameLoopRef.current) {
+      clearInterval(gameLoopRef.current);
+    }
+    navigate('/');
+  };
+
+  if (!isPlaying && !gameOver) {
+    return (
+      <GameContainer>
+        <MenuContainer>
+          <MenuTitle>🐍 Snake Game</MenuTitle>
+          <div>
+            <h3 style={{ color: '#ff69b4', marginBottom: '1rem' }}>Select Difficulty:</h3>
+            {Object.keys(difficultySettings).map((diff) => (
+              <DifficultyButton
+                key={diff}
+                isSelected={difficulty === diff}
+                onClick={() => setDifficulty(diff as Difficulty)}
+              >
+                {diff.charAt(0).toUpperCase() + diff.slice(1)}
+              </DifficultyButton>
+            ))}
+          </div>
+          {highScore > 0 && <HighScore>High Score: {highScore}</HighScore>}
+          <Button onClick={startGame}>Start Game</Button>
+          <Button onClick={exitGame}>Exit to Home</Button>
+        </MenuContainer>
+        <AudioControls game="snake" />
+      </GameContainer>
+    );
+  }
 
   return (
     <GameContainer>
       <Score>Score: {score}</Score>
-      <Controls>
-        <Button onClick={togglePause}>{isPaused ? 'Resume' : 'Pause'}</Button>
-        <SpeedControl>
-          <label>Speed:</label>
-          <select value={speed} onChange={handleSpeedChange}>
-            <option value="150">Slow</option>
-            <option value="100">Normal</option>
-            <option value="70">Fast</option>
-            <option value="50">Very Fast</option>
-          </select>
-        </SpeedControl>
-      </Controls>
+      {!gameOver && <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <Button onClick={isPlaying ? pauseGame : resumeGame}>
+          {isPlaying ? 'Pause' : 'Resume'}
+        </Button>
+        <Button onClick={exitGame}>Exit</Button>
+      </div>}
       <GameBoard>
         {Array.from({ length: 20 }, (_, y) =>
           Array.from({ length: 20 }, (_, x) => (
@@ -249,30 +313,19 @@ const Snake: React.FC = () => {
           ))
         )}
       </GameBoard>
-      {(showMenu || gameOver) && (
-        <MenuOverlay>
-          <h2 style={{ color: '#008B8B' }}>
-            {gameOver ? 'Game Over!' : isPaused ? 'Paused' : 'Snake Game'}
-          </h2>
-          {gameOver && <p>Final Score: {score}</p>}
-          <Button onClick={resetGame}>
-            {gameOver ? 'Play Again' : 'New Game'}
-          </Button>
-          {!gameOver && (
-            <>
-              <Button onClick={() => setShowMenu(false)}>Resume</Button>
-              <Button onClick={handleExit} style={{ backgroundColor: '#DC143C' }}>
-                Exit to Menu
-              </Button>
-            </>
+      {gameOver && (
+        <GameOver>
+          <h2>Game Over!</h2>
+          <p style={{ color: '#ff69b4', marginBottom: '1rem' }}>Final Score: {score}</p>
+          {score === highScore && score > 0 && (
+            <p style={{ color: '#ff1493', marginBottom: '1rem' }}>New High Score! 🎉</p>
           )}
-          {gameOver && (
-            <Button onClick={handleExit} style={{ backgroundColor: '#DC143C' }}>
-              Exit to Menu
-            </Button>
-          )}
-        </MenuOverlay>
+          <Button onClick={startGame}>Play Again</Button>
+          <Button onClick={returnToMenu}>Main Menu</Button>
+          <Button onClick={exitGame}>Exit to Home</Button>
+        </GameOver>
       )}
+      <AudioControls game="snake" />
     </GameContainer>
   );
 };

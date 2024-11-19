@@ -1,73 +1,170 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import AudioControls from '../common/AudioControls';
+import { theme } from '../../styles/theme';
+
+const GameIcon = styled.span`
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+`;
+
+const GameTitle = styled.h2`
+  color: ${theme.colors.text.primary};
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+  transition: color 0.3s ease;
+`;
 
 const HomeContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  background-color: #40E0D0;
-  font-family: 'Comic Sans MS', cursive;
+  padding: 2rem;
+  background: linear-gradient(135deg, ${theme.colors.background.primary} 0%, ${theme.colors.background.secondary} 100%);
+  font-family: ${theme.typography.fontFamily};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+    pointer-events: none;
+  }
 `;
 
 const Title = styled.h1`
-  color: #008B8B;
-  font-size: 3rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  color: ${theme.colors.primary};
+  font-size: 4rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.accent} 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(255, 120, 185, 0.3);
+  position: relative;
+  z-index: 1;
+`;
+
+const Description = styled.p`
+  color: ${theme.colors.text.primary};
+  font-size: 1.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+  opacity: 0.9;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
 `;
 
 const GameGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
-  padding: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
 `;
 
 const GameCard = styled(Link)`
-  background-color: #E0FFFF;
-  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 2rem;
-  text-align: center;
+  background: linear-gradient(135deg, 
+    rgba(37, 38, 41, 0.9) 0%,
+    rgba(26, 27, 30, 0.9) 100%);
+  border-radius: ${theme.borderRadius.large};
   text-decoration: none;
-  color: #20B2AA;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+      rgba(255, 120, 185, 0.1) 0%,
+      rgba(158, 234, 249, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
     transform: translateY(-5px);
-    background-color: #B0E0E6;
-  }
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 120, 185, 0.3);
 
-  h2 {
-    margin: 1rem 0;
+    &::before {
+      opacity: 1;
+    }
+
+    ${GameIcon} {
+      transform: scale(1.1);
+      text-shadow: 0 0 20px rgba(255, 120, 185, 0.5);
+    }
+
+    ${GameTitle} {
+      color: ${theme.colors.primary};
+    }
   }
+`;
+
+const GameDescription = styled.p`
+  color: ${theme.colors.text.primary};
+  font-size: 1rem;
+  text-align: center;
+  margin: 0;
+  opacity: 0.7;
+  line-height: 1.5;
 `;
 
 const Home: React.FC = () => {
   return (
     <HomeContainer>
-      <Title>🎮 Cute Arcade 🎮</Title>
+      <Title>Pishang Games</Title>
+      <Description>Main jelah apa nak main! 🎮</Description>
       <GameGrid>
         <GameCard to="/snake">
-          <h2>🐍 Snake</h2>
-          <p>Classic snake game with a cute twist!</p>
+          <GameIcon>🐍</GameIcon>
+          <GameTitle>Snake</GameTitle>
+          <GameDescription>Classic snake game with a modern twist!</GameDescription>
         </GameCard>
         <GameCard to="/tictactoe">
-          <h2>⭕ Tic Tac Toe</h2>
-          <p>Coming Soon!</p>
+          <GameIcon>⭕</GameIcon>
+          <GameTitle>Tic Tac Toe</GameTitle>
+          <GameDescription>Challenge your friends or play against AI!</GameDescription>
         </GameCard>
         <GameCard to="/tetris">
-          <h2>🟦 Tetris</h2>
-          <p>Coming Soon!</p>
+          <GameIcon>🟦</GameIcon>
+          <GameTitle>Tetris</GameTitle>
+          <GameDescription>Stack blocks and clear lines!</GameDescription>
         </GameCard>
         <GameCard to="/flappybird">
-          <h2>🐦 Flappy Bird</h2>
-          <p>Coming Soon!</p>
+          <GameIcon>🐤</GameIcon>
+          <GameTitle>Flappy Bird</GameTitle>
+          <GameDescription>Fly through pipes and set high scores!</GameDescription>
         </GameCard>
       </GameGrid>
+      <AudioControls game="menu" />
     </HomeContainer>
   );
 };

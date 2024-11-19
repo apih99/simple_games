@@ -4,137 +4,140 @@ import styled from 'styled-components';
 import AudioControls from '../common/AudioControls';
 import { theme } from '../../styles/theme';
 
-const GameIcon = styled.span`
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  transition: all 0.3s ease;
+const GameIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 2.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 2rem;
+    margin-bottom: 0;
+  }
 `;
 
 const GameTitle = styled.h2`
   color: ${theme.colors.text.primary};
   font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  text-align: center;
-  transition: color 0.3s ease;
-`;
+  margin: 0;
+  margin-bottom: 0.5rem;
 
-const HomeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, ${theme.colors.background.primary} 0%, ${theme.colors.background.secondary} 100%);
-  font-family: ${theme.typography.fontFamily};
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
-    pointer-events: none;
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
   }
 `;
 
-const Title = styled.h1`
-  color: ${theme.colors.primary};
-  font-size: 4rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  text-align: center;
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.accent} 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(255, 120, 185, 0.3);
-  position: relative;
-  z-index: 1;
+const GameDescription = styled.p`
+  color: ${theme.colors.text.secondary};
+  font-size: 1rem;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    display: none;
+  }
 `;
 
-const Description = styled.p`
-  color: ${theme.colors.text.primary};
-  font-size: 1.5rem;
-  margin-bottom: 3rem;
+const GameInfo = styled.div`
   text-align: center;
-  opacity: 0.9;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
-  z-index: 1;
+  flex: 1;
+
+  @media (max-width: 480px) {
+    text-align: left;
+    padding-left: 1rem;
+  }
 `;
 
-const GameGrid = styled.div`
+const GameCard = styled(Link)`
+  background: ${theme.colors.gradients.card};
+  border-radius: ${theme.borderRadius.large};
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: ${theme.transitions.default};
+  box-shadow: ${theme.shadows.medium};
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: ${theme.shadows.glow};
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+`;
+
+const GamesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   width: 100%;
   max-width: 1200px;
-  padding: 0 1rem;
-  position: relative;
-  z-index: 1;
+  padding: 1rem;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    gap: 1.5rem;
+    padding: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0;
+  }
 `;
 
-const GameCard = styled(Link)`
+const Title = styled.h1`
+  color: ${theme.colors.text.primary};
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  background: ${theme.colors.gradients.primary};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: ${theme.shadows.glow};
+
+  @media (max-width: 768px) {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+`;
+
+const HomeContainer = styled.div`
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+  background: ${theme.colors.background.primary};
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, 
-    rgba(37, 38, 41, 0.9) 0%,
-    rgba(26, 27, 30, 0.9) 100%);
-  border-radius: ${theme.borderRadius.large};
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg,
-      rgba(255, 120, 185, 0.1) 0%,
-      rgba(158, 234, 249, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 120, 185, 0.3);
-
-    &::before {
-      opacity: 1;
-    }
-
-    ${GameIcon} {
-      transform: scale(1.1);
-      text-shadow: 0 0 20px rgba(255, 120, 185, 0.5);
-    }
-
-    ${GameTitle} {
-      color: ${theme.colors.primary};
-    }
-  }
-`;
-
-const GameDescription = styled.p`
-  color: ${theme.colors.text.primary};
-  font-size: 1rem;
-  text-align: center;
-  margin: 0;
-  opacity: 0.7;
-  line-height: 1.5;
 `;
 
 const GAMES = [
@@ -174,16 +177,18 @@ const Home: React.FC = () => {
   return (
     <HomeContainer>
       <Title>Pishang Games</Title>
-      <Description>Main jelah apa nak main! 🎮</Description>
-      <GameGrid>
+      <h2>Main jelah apa nak main!</h2>
+      <GamesGrid>
         {GAMES.map((game, index) => (
           <GameCard key={index} to={game.route}>
             <GameIcon>{game.emoji}</GameIcon>
-            <GameTitle>{game.title}</GameTitle>
-            <GameDescription>{game.description}</GameDescription>
+            <GameInfo>
+              <GameTitle>{game.title}</GameTitle>
+              <GameDescription>{game.description}</GameDescription>
+            </GameInfo>
           </GameCard>
         ))}
-      </GameGrid>
+      </GamesGrid>
       <AudioControls game="menu" />
     </HomeContainer>
   );

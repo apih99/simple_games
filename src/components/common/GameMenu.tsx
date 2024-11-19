@@ -9,106 +9,128 @@ const MenuOverlay = styled.div<{ isVisible: boolean }>`
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
   opacity: ${props => props.isVisible ? 1 : 0};
-  visibility: ${props => props.isVisible ? 'visible' : 'hidden'};
-  transition: ${theme.transitions.default};
-  z-index: ${theme.zIndex.menu};
-  backdrop-filter: blur(8px);
+  pointer-events: ${props => props.isVisible ? 'all' : 'none'};
+  transition: opacity 0.3s ease;
 `;
 
-const MenuContainer = styled.div`
-  background: ${theme.colors.background.card};
-  padding: 2rem;
+const MenuCard = styled.div<{ isVisible?: boolean }>`
+  background: ${theme.colors.gradients.card};
   border-radius: ${theme.borderRadius.large};
-  min-width: 320px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
   max-width: 90%;
-  text-align: center;
-  box-shadow: ${theme.shadows.large}, 0 0 30px rgba(255, 120, 185, 0.2);
-  transform: translateY(0);
-  transition: ${theme.transitions.default};
+  width: 400px;
+  box-shadow: ${theme.shadows.large};
+  transform: scale(${props => props.isVisible ? 1 : 0.9});
+  transition: transform 0.3s ease;
 
-  ${MenuOverlay}:hover & {
-    transform: translateY(-5px);
-    box-shadow: ${theme.shadows.large}, ${theme.shadows.glow};
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    gap: 1.25rem;
+    width: 350px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+    gap: 1rem;
+    width: 300px;
   }
 `;
 
 const Title = styled.h2`
   color: ${theme.colors.text.primary};
-  font-size: ${theme.typography.heading.fontSize};
-  font-weight: ${theme.typography.heading.fontWeight};
-  margin-bottom: 1.5rem;
+  font-size: 2.5rem;
+  text-align: center;
+  margin: 0;
   background: ${theme.colors.gradients.primary};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: ${theme.shadows.text};
-`;
 
-const Score = styled.div`
-  color: ${theme.colors.text.secondary};
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
 
-  span {
-    color: ${theme.colors.text.accent};
-    font-weight: 600;
+  @media (max-width: 480px) {
+    font-size: 1.75rem;
   }
 `;
 
-const ButtonContainer = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 2rem;
+  width: 100%;
 `;
 
-const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
-  background: ${props => props.variant === 'primary' 
-    ? theme.colors.gradients.primary 
-    : theme.colors.background.secondary};
-  color: ${props => props.variant === 'primary' 
-    ? theme.colors.text.primary 
-    : theme.colors.text.secondary};
+const Button = styled.button`
+  width: 100%;
+  padding: 1rem;
   border: none;
-  padding: 1rem 2rem;
   border-radius: ${theme.borderRadius.medium};
-  font-family: ${theme.typography.fontFamily};
-  font-size: 1rem;
-  font-weight: 600;
+  background: ${theme.colors.gradients.primary};
+  color: ${theme.colors.text.primary};
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: ${theme.transitions.fast};
-  box-shadow: ${theme.shadows.small};
+  transition: ${theme.transitions.default};
+  box-shadow: ${theme.shadows.medium};
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: ${props => props.variant === 'primary' 
-      ? theme.shadows.glow 
-      : theme.shadows.medium};
+    box-shadow: ${theme.shadows.glow};
   }
 
-  &:active {
-    transform: translateY(0);
+  @media (max-width: 768px) {
+    padding: 0.9rem;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.8rem;
+    font-size: 1rem;
   }
 `;
 
-const DifficultyContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin: 1rem 0;
-`;
+const DifficultySelect = styled.select`
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: ${theme.borderRadius.medium};
+  background: ${theme.colors.background.secondary};
+  color: ${theme.colors.text.primary};
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: ${theme.transitions.default};
+  box-shadow: ${theme.shadows.medium};
+  appearance: none;
+  text-align: center;
 
-const DifficultyButton = styled(Button)<{ isSelected: boolean }>`
-  padding: 0.5rem 1rem;
-  opacity: ${props => props.isSelected ? 1 : 0.6};
-  transform: scale(${props => props.isSelected ? 1.05 : 1});
+  &:focus {
+    outline: none;
+    box-shadow: ${theme.shadows.glow};
+  }
 
-  &:hover {
-    opacity: 1;
+  @media (max-width: 768px) {
+    padding: 0.9rem;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  option {
+    background: ${theme.colors.background.primary};
   }
 `;
 
@@ -135,56 +157,49 @@ const GameMenu: React.FC<GameMenuProps> = ({
   onRestart,
   onHome,
   showDifficulty,
-  difficulty = 'Medium',
+  difficulty,
   onDifficultyChange,
   isGameOver
 }) => {
   return (
     <MenuOverlay isVisible={isVisible}>
-      <MenuContainer>
+      <MenuCard isVisible={isVisible}>
         <Title>{isGameOver ? 'Game Over!' : gameTitle}</Title>
         
         {(score !== undefined || highScore !== undefined) && (
-          <Score>
+          <div>
             {score !== undefined && (
               <div>Score: <span>{score}</span></div>
             )}
             {highScore !== undefined && (
               <div>High Score: <span>{highScore}</span></div>
             )}
-          </Score>
+          </div>
         )}
 
         {showDifficulty && onDifficultyChange && (
-          <DifficultyContainer>
-            {['Easy', 'Medium', 'Hard'].map((diff) => (
-              <DifficultyButton
-                key={diff}
-                variant="secondary"
-                isSelected={difficulty === diff}
-                onClick={() => onDifficultyChange(diff as 'Easy' | 'Medium' | 'Hard')}
-              >
-                {diff}
-              </DifficultyButton>
-            ))}
-          </DifficultyContainer>
+          <DifficultySelect value={difficulty} onChange={(e) => onDifficultyChange(e.target.value as 'Easy' | 'Medium' | 'Hard')}>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </DifficultySelect>
         )}
 
-        <ButtonContainer>
+        <ButtonGroup>
           {isGameOver ? (
-            <Button variant="primary" onClick={onRestart}>
+            <Button onClick={onRestart}>
               Play Again
             </Button>
           ) : (
-            <Button variant="primary" onClick={onStart}>
+            <Button onClick={onStart}>
               {score !== undefined ? 'Restart' : 'Start Game'}
             </Button>
           )}
-          <Button variant="secondary" onClick={onHome}>
+          <Button onClick={onHome}>
             Back to Home
           </Button>
-        </ButtonContainer>
-      </MenuContainer>
+        </ButtonGroup>
+      </MenuCard>
     </MenuOverlay>
   );
 };

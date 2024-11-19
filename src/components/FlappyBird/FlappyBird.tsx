@@ -77,7 +77,7 @@ const DIFFICULTY_SETTINGS = {
     pipeSpawnRate: 120
   },
   Medium: {
-    gravity: 0.65,
+    gravity: 0.7,
     jumpForce: -9,
     pipeSpeed: 3,
     pipeGap: 160,
@@ -251,11 +251,16 @@ const FlappyBird: React.FC = () => {
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && gameStarted && !gameOver) {
-        setBird(prev => ({
-          ...prev,
-          velocity: DIFFICULTY_SETTINGS[difficulty].jumpForce
-        }));
+      if (e.code === 'Space') {
+        if (!gameStarted || gameOver) {
+          startGame();
+        } else {
+          setBird(prev => ({
+            ...prev,
+            velocity: DIFFICULTY_SETTINGS[difficulty].jumpForce
+          }));
+        }
+        e.preventDefault();
       }
     };
 

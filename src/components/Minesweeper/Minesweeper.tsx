@@ -10,19 +10,20 @@ const GameContainer = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
   background: ${theme.colors.background.primary};
-  padding: 2rem;
 `;
 
 const GameArea = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
-  background: ${theme.colors.gradients.card};
-  border-radius: ${theme.borderRadius.large};
-  box-shadow: ${theme.shadows.large};
-  backdrop-filter: blur(8px);
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 `;
 
 const GameHeader = styled.div`
@@ -35,30 +36,69 @@ const GameHeader = styled.div`
   border-radius: ${theme.borderRadius.medium};
   color: ${theme.colors.text.primary};
   gap: 1rem;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    text-align: center;
+    padding: 0.5rem;
+  }
 `;
 
 const HeaderControls = styled.div`
   display: flex;
   gap: 1rem;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
-const GameStatus = styled.div<{ isGameOver?: boolean }>`
-  color: ${props => props.isGameOver ? theme.colors.error : theme.colors.text.primary};
-  font-weight: ${props => props.isGameOver ? 'bold' : 'normal'};
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+const Button = styled.button`
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: ${theme.borderRadius.small};
+  background: ${theme.colors.gradients.primary};
+  color: ${theme.colors.text.primary};
+  cursor: pointer;
+  transition: ${theme.transitions.default};
+  font-size: 1rem;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: ${theme.shadows.glow};
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    flex: 1;
+  }
 `;
 
 const GameBoard = styled.div<{ size: number }>`
   display: grid;
   grid-template-columns: repeat(${props => props.size}, 40px);
-  grid-template-rows: repeat(${props => props.size}, 40px);
-  gap: 2px;
-  background: ${theme.colors.background.secondary};
+  gap: 4px;
   padding: 1rem;
+  background: ${theme.colors.background.secondary};
   border-radius: ${theme.borderRadius.medium};
   box-shadow: ${theme.shadows.medium};
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(${props => props.size}, 35px);
+    gap: 3px;
+    padding: 0.5rem;
+  }
+
+  @media (max-width: 360px) {
+    grid-template-columns: repeat(${props => props.size}, 30px);
+    gap: 2px;
+  }
 `;
 
 const Cell = styled.button<{ revealed: boolean; isMine?: boolean; isFlagged?: boolean }>`
@@ -77,6 +117,21 @@ const Cell = styled.button<{ revealed: boolean; isMine?: boolean; isFlagged?: bo
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+
+  @media (max-width: 480px) {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 360px) {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
 
   &:hover {
     transform: ${props => !props.revealed && 'scale(1.05)'};
@@ -98,26 +153,60 @@ const Cell = styled.button<{ revealed: boolean; isMine?: boolean; isFlagged?: bo
   `}
 `;
 
-const Button = styled.button`
-  background: ${theme.colors.gradients.primary};
-  color: ${theme.colors.text.primary};
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: ${theme.borderRadius.medium};
-  cursor: pointer;
-  font-size: ${theme.typography.body.fontSize};
-  transition: ${theme.transitions.default};
-  box-shadow: ${theme.shadows.medium};
+const GameControls = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  justify-content: center;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.glow};
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+`;
+
+const FlagToggle = styled.button<{ active: boolean }>`
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: ${theme.borderRadius.small};
+  background: ${props => props.active ? theme.colors.error : theme.colors.gradients.primary};
+  color: ${theme.colors.text.primary};
+  cursor: pointer;
+  transition: ${theme.transitions.default};
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+    font-size: 1.1rem;
   }
 `;
 
 const InfoText = styled.span`
   color: ${theme.colors.text.primary};
   font-size: ${theme.typography.body.fontSize};
+`;
+
+const GameStatus = styled.div<{ isGameOver?: boolean }>`
+  color: ${props => props.isGameOver ? theme.colors.error : theme.colors.text.primary};
+  font-weight: ${props => props.isGameOver ? 'bold' : 'normal'};
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: center;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+  }
 `;
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
@@ -153,6 +242,7 @@ const Minesweeper: React.FC = () => {
   const [flagCount, setFlagCount] = useState(0);
   const [showMenu, setShowMenu] = useState(true);
   const [firstClick, setFirstClick] = useState(true);
+  const [flagMode, setFlagMode] = useState(false);
 
   const createBoard = useCallback((size: number): CellData[][] => {
     return Array(size).fill(null).map(() =>
@@ -291,13 +381,22 @@ const Minesweeper: React.FC = () => {
     navigate('/');
   };
 
-  const handleCellClick = (e: React.MouseEvent, x: number, y: number) => {
+  const handleCellClick = (e: React.MouseEvent | React.TouchEvent, x: number, y: number) => {
     e.preventDefault();
-    if (e.button === 0) { // Left click
-      revealCell(x, y);
-    } else if (e.button === 2) { // Right click
+    
+    if (e.type === 'contextmenu') {
       toggleFlag(x, y);
+    } else {
+      if (flagMode) {
+        toggleFlag(x, y);
+      } else {
+        revealCell(x, y);
+      }
     }
+  };
+
+  const toggleFlagMode = () => {
+    setFlagMode(!flagMode);
   };
 
   useEffect(() => {
@@ -334,6 +433,14 @@ const Minesweeper: React.FC = () => {
               <Button onClick={handleExit}>Exit</Button>
             </HeaderControls>
           </GameHeader>
+          <GameControls>
+            <FlagToggle 
+              active={flagMode} 
+              onClick={toggleFlagMode}
+            >
+              {flagMode ? '🚩 Flag Mode (ON)' : '🚩 Flag Mode (OFF)'}
+            </FlagToggle>
+          </GameControls>
           <GameBoard size={DIFFICULTY_SETTINGS[difficulty].size}>
             {board.map((row, y) =>
               row.map((cell, x) => (

@@ -137,32 +137,52 @@ const GameDescription = styled.p`
   line-height: 1.5;
 `;
 
+const GAMES = [
+  {
+    title: 'Snake',
+    emoji: '🐍',
+    route: '/snake',
+    description: 'Classic snake game with a modern twist'
+  },
+  {
+    title: 'Tic Tac Toe',
+    emoji: '⭕',
+    route: '/tictactoe',
+    description: 'Challenge your friends or play against AI!'
+  },
+  {
+    title: 'Tetris',
+    emoji: '🟦',
+    route: '/tetris',
+    description: 'The timeless puzzle game'
+  },
+  {
+    title: 'Flappy Bird',
+    emoji: '🐤',
+    route: '/flappybird',
+    description: 'Guide the bird through obstacles'
+  },
+  {
+    title: 'Minesweeper',
+    emoji: '💣',
+    route: '/minesweeper',
+    description: 'Classic puzzle game of mines and flags'
+  }
+];
+
 const Home: React.FC = () => {
   return (
     <HomeContainer>
       <Title>Pishang Games</Title>
       <Description>Main jelah apa nak main! 🎮</Description>
       <GameGrid>
-        <GameCard to="/snake">
-          <GameIcon>🐍</GameIcon>
-          <GameTitle>Snake</GameTitle>
-          <GameDescription>Classic snake game with a modern twist!</GameDescription>
-        </GameCard>
-        <GameCard to="/tictactoe">
-          <GameIcon>⭕</GameIcon>
-          <GameTitle>Tic Tac Toe</GameTitle>
-          <GameDescription>Challenge your friends or play against AI!</GameDescription>
-        </GameCard>
-        <GameCard to="/tetris">
-          <GameIcon>🟦</GameIcon>
-          <GameTitle>Tetris</GameTitle>
-          <GameDescription>Stack blocks and clear lines!</GameDescription>
-        </GameCard>
-        <GameCard to="/flappybird">
-          <GameIcon>🐤</GameIcon>
-          <GameTitle>Flappy Bird</GameTitle>
-          <GameDescription>Fly through pipes and set high scores!</GameDescription>
-        </GameCard>
+        {GAMES.map((game, index) => (
+          <GameCard key={index} to={game.route}>
+            <GameIcon>{game.emoji}</GameIcon>
+            <GameTitle>{game.title}</GameTitle>
+            <GameDescription>{game.description}</GameDescription>
+          </GameCard>
+        ))}
       </GameGrid>
       <AudioControls game="menu" />
     </HomeContainer>

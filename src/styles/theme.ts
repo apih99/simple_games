@@ -3,6 +3,7 @@ export const theme = {
     primary: '#FF78B9',       // Soft pink
     secondary: '#9EEAF9',     // Light blue
     accent: '#FFC2E2',        // Light pink
+    error: '#FF4444',         // Added error color
     background: {
       primary: '#1A1B1E',     // Dark background
       secondary: '#2C2D31',   // Slightly lighter background

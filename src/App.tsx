@@ -6,6 +6,7 @@ import Snake from './components/Snake/Snake';
 import TicTacToe from './components/TicTacToe/TicTacToe';
 import Tetris from './components/Tetris/Tetris';
 import FlappyBird from './components/FlappyBird/FlappyBird';
+import Minesweeper from './components/Minesweeper/Minesweeper';
 
 const AppContainer = styled.div`
   width: 100%;
@@ -23,6 +24,7 @@ const App: React.FC = () => {
           <Route path="/tictactoe" element={<TicTacToe />} />
           <Route path="/tetris" element={<Tetris />} />
           <Route path="/flappybird" element={<FlappyBird />} />
+          <Route path="/minesweeper" element={<Minesweeper />} />
         </Routes>
       </AppContainer>
     </Router>

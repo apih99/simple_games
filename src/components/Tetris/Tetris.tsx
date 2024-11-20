@@ -17,35 +17,36 @@ const GameContainer = styled.div`
 
 const GameArea = styled.div`
   display: flex;
+  flex-direction: row;
   gap: 2rem;
   padding: 2rem;
   background: ${theme.colors.gradients.card};
   border-radius: ${theme.borderRadius.large};
   box-shadow: ${theme.shadows.large};
   backdrop-filter: blur(8px);
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
 `;
 
 const GameBoard = styled.div`
   display: grid;
-  grid-template-columns: repeat(10, 30px);
-  grid-template-rows: repeat(20, 30px);
+  grid-template-columns: repeat(10, min(30px, 8vw));
+  grid-template-rows: repeat(20, min(30px, 8vw));
   gap: 1px;
   background: ${theme.colors.background.secondary};
   padding: 1rem;
   border-radius: ${theme.borderRadius.medium};
   box-shadow: ${theme.shadows.medium};
-`;
-
-const SidePanel = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  min-width: 200px;
+  touch-action: none;
 `;
 
 const Cell = styled.div<{ color: string }>`
-  width: 30px;
-  height: 30px;
+  width: min(30px, 8vw);
+  height: min(30px, 8vw);
   background-color: ${({ color }) => color || theme.colors.background.secondary};
   border-radius: ${theme.borderRadius.small};
   box-shadow: ${({ color }) =>
@@ -55,13 +56,20 @@ const Cell = styled.div<{ color: string }>`
 
 const NextPiece = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 30px);
-  grid-template-rows: repeat(4, 30px);
+  grid-template-columns: repeat(4, min(30px, 8vw));
+  grid-template-rows: repeat(4, min(30px, 8vw));
   gap: 1px;
   background: ${theme.colors.background.secondary};
   padding: 1rem;
   border-radius: ${theme.borderRadius.medium};
   box-shadow: ${theme.shadows.small};
+`;
+
+const SidePanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 200px;
 `;
 
 const InfoPanel = styled.div`
@@ -121,6 +129,31 @@ const MenuOverlay = styled.div`
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
   z-index: 100;
+`;
+
+const Controls = styled.div`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 300px;
+  }
+`;
+
+const ControlButton = styled.button`
+  background: ${theme.colors.gradients.primary};
+  color: ${theme.colors.text.primary};
+  border: none;
+  padding: 1rem;
+  border-radius: ${theme.borderRadius.medium};
+  font-size: 1.5rem;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 `;
 
 const TETROMINOS = {
@@ -270,6 +303,8 @@ const Tetris: React.FC = () => {
   });
   const [isPaused, setIsPaused] = useState(true);
   const [showMenu, setShowMenu] = useState(true);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [swipeThreshold] = useState(30);
 
   const getRandomPiece = (): TetrominoType => {
     const pieces: TetrominoType[] = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
@@ -481,6 +516,35 @@ const Tetris: React.FC = () => {
     }
   }, [gameState.piece, gameState.board, gameState.gameOver, isPaused]);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (gameState.gameOver || isPaused) return;
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart || gameState.gameOver || isPaused) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    
+    if (Math.abs(deltaX) > swipeThreshold) {
+      movePiece(deltaX > 0 ? 1 : -1, 0);
+      setTouchStart({ x: touch.clientX, y: touch.clientY });
+    }
+    
+    if (deltaY > swipeThreshold) {
+      movePiece(0, 1);
+      setTouchStart({ x: touch.clientX, y: touch.clientY });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+  };
+
   const renderBoard = () => {
     const displayBoard = gameState.board.map(row => [...row]);
     
@@ -608,7 +672,11 @@ const Tetris: React.FC = () => {
         </MenuOverlay>
       ) : (
         <GameArea>
-          <GameBoard>
+          <GameBoard
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             {renderBoard()}
           </GameBoard>
           <SidePanel>
@@ -648,6 +716,13 @@ const Tetris: React.FC = () => {
               />
             </MenuOverlay>
           )}
+          <Controls>
+            <ControlButton onTouchStart={() => movePiece(-1, 0)}>←</ControlButton>
+            <ControlButton onTouchStart={() => rotatePiece()}>↻</ControlButton>
+            <ControlButton onTouchStart={() => movePiece(1, 0)}>→</ControlButton>
+            <ControlButton onTouchStart={() => movePiece(0, 1)}>↓</ControlButton>
+            <ControlButton onTouchStart={() => dropPiece()}>⤓</ControlButton>
+          </Controls>
         </GameArea>
       )}
       <AudioControls game="tetris" />

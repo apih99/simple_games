@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { theme } from '../../styles/theme';
-import AudioControls from '../common/AudioControls';
 import { useNavigate } from 'react-router-dom';
 
 const GameContainer = styled.div`
@@ -455,7 +454,6 @@ const Snake: React.FC = () => {
           <Button onClick={startGame}>Start Game</Button>
           <Button onClick={exitGame}>Exit to Home</Button>
         </MenuContainer>
-        <AudioControls game="snake" />
       </GameContainer>
     );
   }
@@ -504,7 +502,6 @@ const Snake: React.FC = () => {
           <Button onClick={exitGame}>Exit to Home</Button>
         </GameOver>
       )}
-      <AudioControls game="snake" />
     </GameContainer>
   );
 };

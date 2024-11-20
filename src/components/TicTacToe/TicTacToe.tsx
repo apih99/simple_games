@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import GameMenu from '../common/GameMenu';
 
 const GameContainer = styled.div`
   display: flex;

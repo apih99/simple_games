@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import AudioControls from '../common/AudioControls';
 import GameMenu from '../common/GameMenu';
 import { theme } from '../../styles/theme';
 
@@ -337,7 +336,6 @@ const FlappyBird: React.FC = () => {
         width={800} 
         height={600}
       />
-      <AudioControls game="flappyBird" />
       <GameMenu
         isVisible={!gameStarted || gameOver}
         gameTitle="Flappy Bird"

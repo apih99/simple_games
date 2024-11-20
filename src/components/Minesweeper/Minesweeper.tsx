@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { theme } from '../../styles/theme';
@@ -244,7 +244,7 @@ const Minesweeper: React.FC = () => {
   const [firstClick, setFirstClick] = useState(true);
   const [flagMode, setFlagMode] = useState(false);
 
-  const createBoard = useCallback((size: number): CellData[][] => {
+  const createBoard = (size: number): CellData[][] => {
     return Array(size).fill(null).map(() =>
       Array(size).fill(null).map(() => ({
         isMine: false,
@@ -253,9 +253,9 @@ const Minesweeper: React.FC = () => {
         neighborMines: 0
       }))
     );
-  }, []);
+  };
 
-  const placeMines = useCallback((board: CellData[][], mines: number, firstX: number, firstY: number) => {
+  const placeMines = (board: CellData[][], mines: number, firstX: number, firstY: number) => {
     const size = board.length;
     let minesPlaced = 0;
     const newBoard = board.map(row => row.map(cell => ({ ...cell })));
@@ -292,7 +292,7 @@ const Minesweeper: React.FC = () => {
     }
 
     return newBoard;
-  }, []);
+  };
 
   const startGame = (selectedDifficulty: Difficulty) => {
     const settings = DIFFICULTY_SETTINGS[selectedDifficulty];

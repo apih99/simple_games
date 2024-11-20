@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import AudioControls from '../common/AudioControls';
 import GameMenu from '../common/GameMenu';
 import { theme } from '../../styles/theme';
 
@@ -898,7 +897,6 @@ const Tetris: React.FC = () => {
           )}
         </GameArea>
       )}
-      <AudioControls game="tetris" />
       <FullscreenButton onClick={toggleFullscreen}>
         {isFullscreen ? '⤧' : '⤢'}
       </FullscreenButton>

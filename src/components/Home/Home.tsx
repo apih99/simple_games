@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import AudioControls from '../common/AudioControls';
 import { theme } from '../../styles/theme';
 
 const GameIcon = styled.div`
@@ -203,7 +202,6 @@ const Home: React.FC = () => {
           </GameCard>
         ))}
       </GamesGrid>
-      <AudioControls game="menu" />
       <Footer>Created by apih99</Footer>
     </HomeContainer>
   );

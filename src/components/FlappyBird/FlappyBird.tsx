@@ -19,6 +19,9 @@ const Canvas = styled.canvas`
   border-radius: ${theme.borderRadius.medium};
   box-shadow: ${theme.shadows.large};
   background: ${theme.colors.background.secondary};
+  width: min(800px, 100%);
+  height: auto;
+  touch-action: none;
 `;
 
 const ScoreDisplay = styled.div`
@@ -108,6 +111,7 @@ const FlappyBird: React.FC = () => {
   });
   const [pipes, setPipes] = useState<Pipe[]>([]);
   const [frameCount, setFrameCount] = useState(0);
+  const [canvasScale, setCanvasScale] = useState(1);
 
   const drawBird = useCallback((ctx: CanvasRenderingContext2D, bird: Bird) => {
     ctx.beginPath();
@@ -268,6 +272,45 @@ const FlappyBird: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [gameStarted, gameOver, difficulty]);
 
+  useEffect(() => {
+    const handleTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      if (!gameStarted || gameOver) {
+        startGame();
+      } else {
+        setBird(prev => ({
+          ...prev,
+          velocity: DIFFICULTY_SETTINGS[difficulty].jumpForce
+        }));
+      }
+    };
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('touchstart', handleTouch);
+      return () => canvas.removeEventListener('touchstart', handleTouch);
+    }
+  }, [gameStarted, gameOver, difficulty]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) {
+        const canvas = canvasRef.current;
+        const containerWidth = canvas.parentElement?.clientWidth || window.innerWidth;
+        const scale = Math.min(1, containerWidth / 800);
+        setCanvasScale(scale);
+        
+        // Update canvas display size while maintaining internal resolution
+        canvas.style.width = `${800 * scale}px`;
+        canvas.style.height = `${600 * scale}px`;
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const startGame = () => {
     setBird({
       x: 100,
@@ -289,7 +332,11 @@ const FlappyBird: React.FC = () => {
   return (
     <GameContainer>
       <ScoreDisplay>{score}</ScoreDisplay>
-      <Canvas ref={canvasRef} width={800} height={600} />
+      <Canvas 
+        ref={canvasRef} 
+        width={800} 
+        height={600}
+      />
       <AudioControls game="flappyBird" />
       <GameMenu
         isVisible={!gameStarted || gameOver}

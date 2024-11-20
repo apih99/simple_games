@@ -13,6 +13,17 @@ const GameContainer = styled.div`
   background: linear-gradient(135deg, #1a0011 0%, #3d0a2c 100%);
   min-height: 100vh;
   position: relative;
+
+  @media (max-width: 768px) {
+    padding: 0;
+    height: 100vh;
+    
+    &.fullscreen {
+      height: 100vh;
+      width: 100vw;
+      padding: 0;
+    }
+  }
 `;
 
 const MenuContainer = styled.div`
@@ -31,18 +42,19 @@ const MenuContainer = styled.div`
 
 const GameBoard = styled.div`
   display: grid;
-  grid-template-columns: repeat(20, 20px);
-  grid-template-rows: repeat(20, 20px);
+  grid-template-columns: repeat(20, min(20px, 4.5vw));
+  grid-template-rows: repeat(20, min(20px, 4.5vw));
   gap: 1px;
   background: rgba(61, 10, 44, 0.8);
   padding: 10px;
   border-radius: ${theme.borderRadius.large};
   box-shadow: 0 0 30px rgba(255, 182, 193, 0.2);
+  touch-action: none;
 `;
 
 const Cell = styled.div<{ isSnake?: boolean; isFood?: boolean }>`
-  width: 20px;
-  height: 20px;
+  width: min(20px, 4.5vw);
+  height: min(20px, 4.5vw);
   border-radius: 4px;
   background-color: ${({ isSnake, isFood }) =>
     isSnake
@@ -60,6 +72,66 @@ const Score = styled.div`
   color: #ff69b4;
   margin: 1rem 0;
   text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+`;
+
+const Controls = styled.div`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 300px;
+    padding: 0 1rem;
+  }
+`;
+
+const ControlButton = styled.button<{ size?: string }>`
+  background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+  color: white;
+  border: none;
+  padding: ${props => props.size === 'large' ? '1.5rem' : '1rem'};
+  border-radius: ${theme.borderRadius.medium};
+  font-size: ${props => props.size === 'large' ? '2rem' : '1.5rem'};
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
+  
+  &:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(255, 105, 180, 0.2);
+  }
+`;
+
+const FullscreenButton = styled.button`
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+  font-size: 1.2rem;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
 `;
 
 const GameOver = styled(MenuContainer)`
@@ -137,6 +209,10 @@ const Snake: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const gameLoopRef = useRef<number>();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [swipeThreshold] = useState(30);
 
   const generateFood = useCallback(() => {
     const x = Math.floor(Math.random() * 20);
@@ -267,9 +343,100 @@ const Snake: React.FC = () => {
     navigate('/');
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (gameOver || !isPlaying) return;
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart || gameOver || !isPlaying) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    
+    if (Math.abs(deltaX) > swipeThreshold || Math.abs(deltaY) > swipeThreshold) {
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 0 && direction !== 'LEFT') {
+          setDirection('RIGHT');
+        } else if (deltaX < 0 && direction !== 'RIGHT') {
+          setDirection('LEFT');
+        }
+      } else {
+        // Vertical swipe
+        if (deltaY > 0 && direction !== 'UP') {
+          setDirection('DOWN');
+        } else if (deltaY < 0 && direction !== 'DOWN') {
+          setDirection('UP');
+        }
+      }
+      setTouchStart({ x: touch.clientX, y: touch.clientY });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+  };
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      try {
+        if (gameContainerRef.current?.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        } else if ((gameContainerRef.current as any)?.webkitRequestFullscreen) {
+          await (gameContainerRef.current as any).webkitRequestFullscreen();
+        }
+        setIsFullscreen(true);
+        if (window.screen?.orientation?.lock) {
+          try {
+            await window.screen.orientation.lock('portrait');
+          } catch (e) {
+            console.log('Orientation lock not supported');
+          }
+        }
+      } catch (err) {
+        console.log('Error attempting to enable fullscreen:', err);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        await (document as any).webkitExitFullscreen();
+      }
+      setIsFullscreen(false);
+      if (window.screen?.orientation?.unlock) {
+        try {
+          await window.screen.orientation.unlock();
+        } catch (e) {
+          console.log('Orientation unlock not supported');
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   if (!isPlaying && !gameOver) {
     return (
-      <GameContainer>
+      <GameContainer 
+        ref={gameContainerRef}
+        className={isFullscreen ? 'fullscreen' : ''}
+      >
         <MenuContainer>
           <MenuTitle>🐍 Snake Game</MenuTitle>
           <div>
@@ -294,25 +461,37 @@ const Snake: React.FC = () => {
   }
 
   return (
-    <GameContainer>
+    <GameContainer 
+      ref={gameContainerRef}
+      className={isFullscreen ? 'fullscreen' : ''}
+    >
       <Score>Score: {score}</Score>
-      {!gameOver && <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-        <Button onClick={isPlaying ? pauseGame : resumeGame}>
-          {isPlaying ? 'Pause' : 'Resume'}
-        </Button>
-        <Button onClick={exitGame}>Exit</Button>
-      </div>}
-      <GameBoard>
+      <GameBoard
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {Array.from({ length: 20 }, (_, y) =>
           Array.from({ length: 20 }, (_, x) => (
             <Cell
               key={`${x}-${y}`}
-              isSnake={snake.some((segment) => segment.x === x && segment.y === y)}
+              isSnake={snake.some(segment => segment.x === x && segment.y === y)}
               isFood={food.x === x && food.y === y}
             />
           ))
         )}
       </GameBoard>
+      <Controls>
+        <ControlButton onTouchStart={() => direction !== 'RIGHT' && setDirection('LEFT')}>←</ControlButton>
+        <ControlButton onTouchStart={() => direction !== 'DOWN' && setDirection('UP')}>↑</ControlButton>
+        <ControlButton onTouchStart={() => direction !== 'LEFT' && setDirection('RIGHT')}>→</ControlButton>
+        <ControlButton onTouchStart={() => pauseGame()}>❚❚</ControlButton>
+        <ControlButton onTouchStart={() => direction !== 'UP' && setDirection('DOWN')}>↓</ControlButton>
+        <ControlButton onTouchStart={() => returnToMenu()}>↩</ControlButton>
+      </Controls>
+      <FullscreenButton onClick={toggleFullscreen}>
+        {isFullscreen ? '⤧' : '⤢'}
+      </FullscreenButton>
       {gameOver && (
         <GameOver>
           <h2>Game Over!</h2>

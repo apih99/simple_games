@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import AudioControls from '../common/AudioControls';
@@ -13,6 +13,17 @@ const GameContainer = styled.div`
   min-height: 100vh;
   background: ${theme.colors.background.primary};
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 0;
+    height: 100vh;
+    
+    &.fullscreen {
+      height: 100vh;
+      width: 100vw;
+      padding: 0;
+    }
+  }
 `;
 
 const GameArea = styled.div`
@@ -216,6 +227,26 @@ const ControlsInfo = styled.div`
   }
 `;
 
+const FullscreenButton = styled(Button)`
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: ${theme.colors.gradients.primary};
+  font-size: 1.2rem;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+`;
+
 const TETROMINOS = {
   I: {
     shape: [
@@ -365,6 +396,8 @@ const Tetris: React.FC = () => {
   const [showMenu, setShowMenu] = useState(true);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [swipeThreshold] = useState(30);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameContainerRef = useRef<HTMLDivElement>(null);
 
   const getRandomPiece = (): TetrominoType => {
     const pieces: TetrominoType[] = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
@@ -669,6 +702,58 @@ const Tetris: React.FC = () => {
     navigate('/');
   };
 
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      try {
+        if (gameContainerRef.current?.requestFullscreen) {
+          await gameContainerRef.current.requestFullscreen();
+        } else if ((gameContainerRef.current as any)?.webkitRequestFullscreen) {
+          await (gameContainerRef.current as any).webkitRequestFullscreen();
+        }
+        setIsFullscreen(true);
+        // Lock screen orientation to portrait if supported
+        if (window.screen?.orientation?.lock) {
+          try {
+            await window.screen.orientation.lock('portrait');
+          } catch (e) {
+            console.log('Orientation lock not supported');
+          }
+        }
+      } catch (err) {
+        console.log('Error attempting to enable fullscreen:', err);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        await (document as any).webkitExitFullscreen();
+      }
+      setIsFullscreen(false);
+      // Unlock screen orientation if it was locked
+      if (window.screen?.orientation?.unlock) {
+        try {
+          await window.screen.orientation.unlock();
+        } catch (e) {
+          console.log('Orientation unlock not supported');
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isPaused && !gameState.gameOver && gameState.piece) {
       const speed = calculateSpeed(gameState.level, gameState.difficulty);
@@ -715,7 +800,10 @@ const Tetris: React.FC = () => {
   }, [gameState.gameOver, isPaused, movePiece, rotatePiece, dropPiece]);
 
   return (
-    <GameContainer>
+    <GameContainer 
+      ref={gameContainerRef}
+      className={isFullscreen ? 'fullscreen' : ''}
+    >
       {showMenu ? (
         <MenuOverlay>
           <GameMenu
@@ -811,6 +899,9 @@ const Tetris: React.FC = () => {
         </GameArea>
       )}
       <AudioControls game="tetris" />
+      <FullscreenButton onClick={toggleFullscreen}>
+        {isFullscreen ? '⤧' : '⤢'}
+      </FullscreenButton>
     </GameContainer>
   );
 };

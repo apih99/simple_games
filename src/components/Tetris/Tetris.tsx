@@ -28,25 +28,30 @@ const GameArea = styled.div`
   @media (max-width: 768px) {
     flex-direction: column;
     padding: 1rem;
-    gap: 1rem;
+    gap: 0.5rem;
+    align-items: center;
   }
 `;
 
 const GameBoard = styled.div`
   display: grid;
-  grid-template-columns: repeat(10, min(30px, 8vw));
-  grid-template-rows: repeat(20, min(30px, 8vw));
+  grid-template-columns: repeat(10, min(30px, 6vw));
+  grid-template-rows: repeat(20, min(30px, 6vw));
   gap: 1px;
   background: ${theme.colors.background.secondary};
-  padding: 1rem;
+  padding: 0.5rem;
   border-radius: ${theme.borderRadius.medium};
   box-shadow: ${theme.shadows.medium};
   touch-action: none;
+
+  @media (max-width: 768px) {
+    margin-top: 60px; // Space for the score
+  }
 `;
 
 const Cell = styled.div<{ color: string }>`
-  width: min(30px, 8vw);
-  height: min(30px, 8vw);
+  width: min(30px, 6vw);
+  height: min(30px, 6vw);
   background-color: ${({ color }) => color || theme.colors.background.secondary};
   border-radius: ${theme.borderRadius.small};
   box-shadow: ${({ color }) =>
@@ -70,6 +75,14 @@ const SidePanel = styled.div`
   flex-direction: column;
   gap: 1.5rem;
   min-width: 200px;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    min-width: unset;
+    width: 100%;
+    justify-content: center;
+    gap: 1rem;
+  }
 `;
 
 const InfoPanel = styled.div`
@@ -91,6 +104,32 @@ const InfoPanel = styled.div`
     margin: 0.5rem 0;
     font-size: ${theme.typography.body.fontSize};
     color: ${theme.colors.text.secondary};
+  }
+`;
+
+const ScorePanel = styled(InfoPanel)`
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    border-radius: 0;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: ${theme.colors.gradients.primary};
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+    }
   }
 `;
 
@@ -136,24 +175,45 @@ const Controls = styled.div`
   
   @media (max-width: 768px) {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
     margin-top: 1rem;
     width: 100%;
-    max-width: 300px;
+    padding: 0 1rem;
   }
 `;
 
-const ControlButton = styled.button`
+const ControlButton = styled.button<{ size?: string }>`
   background: ${theme.colors.gradients.primary};
   color: ${theme.colors.text.primary};
   border: none;
-  padding: 1rem;
+  padding: ${props => props.size === 'large' ? '1.5rem' : '1rem'};
   border-radius: ${theme.borderRadius.medium};
-  font-size: 1.5rem;
+  font-size: ${props => props.size === 'large' ? '2rem' : '1.5rem'};
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: ${theme.shadows.medium};
+  
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const ControlsInfo = styled.div`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: block;
+    text-align: center;
+    color: ${theme.colors.text.secondary};
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+  }
 `;
 
 const TETROMINOS = {
@@ -672,24 +732,56 @@ const Tetris: React.FC = () => {
         </MenuOverlay>
       ) : (
         <GameArea>
+          <ScorePanel>
+            <div>
+              <h3>Score</h3>
+              <p>{gameState.score}</p>
+            </div>
+            <div>
+              <h3>Level</h3>
+              <p>{gameState.level}</p>
+            </div>
+            <div>
+              <h3>Lines</h3>
+              <p>{gameState.lines}</p>
+            </div>
+          </ScorePanel>
+          
           <GameBoard
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {renderBoard()}
+            {gameState.board.map((row, y) => (
+              row.map((cell, x) => (
+                <Cell
+                  key={`${x}-${y}`}
+                  color={cell || (gameState.piece && 
+                    gameState.piece.shape[y - gameState.piece.position.y]?.[x - gameState.piece.position.x] 
+                    ? TETROMINOS[gameState.piece.type].color 
+                    : '')}
+                />
+              ))
+            ))}
           </GameBoard>
+          
+          <Controls>
+            <ControlButton onTouchStart={() => movePiece(-1, 0)}>←</ControlButton>
+            <ControlButton onTouchStart={() => movePiece(0, 1)}>↓</ControlButton>
+            <ControlButton size="large" onTouchStart={() => rotatePiece()}>↻</ControlButton>
+            <ControlButton onTouchStart={() => dropPiece()}>⤓</ControlButton>
+            <ControlButton onTouchStart={() => movePiece(1, 0)}>→</ControlButton>
+          </Controls>
+          
+          <ControlsInfo>
+            Tap ↻ to rotate • Tap ⤓ for hard drop
+          </ControlsInfo>
+          
           <SidePanel>
             <NextPiece>
               {renderNextPiece()}
             </NextPiece>
             <InfoPanel>
-              <h3>Score</h3>
-              <p>{gameState.score}</p>
-              <h3>Lines</h3>
-              <p>{gameState.lines}</p>
-              <h3>Level</h3>
-              <p>{gameState.level}</p>
               <h3>Combo</h3>
               <p>{gameState.combo}x</p>
             </InfoPanel>
@@ -716,13 +808,6 @@ const Tetris: React.FC = () => {
               />
             </MenuOverlay>
           )}
-          <Controls>
-            <ControlButton onTouchStart={() => movePiece(-1, 0)}>←</ControlButton>
-            <ControlButton onTouchStart={() => rotatePiece()}>↻</ControlButton>
-            <ControlButton onTouchStart={() => movePiece(1, 0)}>→</ControlButton>
-            <ControlButton onTouchStart={() => movePiece(0, 1)}>↓</ControlButton>
-            <ControlButton onTouchStart={() => dropPiece()}>⤓</ControlButton>
-          </Controls>
         </GameArea>
       )}
       <AudioControls game="tetris" />

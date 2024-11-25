@@ -7,6 +7,7 @@ import TicTacToe from './components/TicTacToe/TicTacToe';
 import Tetris from './components/Tetris/Tetris';
 import FlappyBird from './components/FlappyBird/FlappyBird';
 import Minesweeper from './components/Minesweeper/Minesweeper';
+import CheckersGame from './components/Checkers/Checkers';
 import { audioManager } from './utils/audio';
 
 const AppContainer = styled.div`
@@ -31,6 +32,7 @@ const App: React.FC = () => {
           <Route path="/tetris" element={<Tetris />} />
           <Route path="/flappybird" element={<FlappyBird />} />
           <Route path="/minesweeper" element={<Minesweeper />} />
+          <Route path="/checkers" element={<CheckersGame />} />
         </Routes>
       </AppContainer>
     </Router>

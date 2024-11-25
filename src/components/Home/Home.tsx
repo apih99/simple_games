@@ -183,6 +183,12 @@ const GAMES = [
     emoji: '💣',
     route: '/minesweeper',
     description: 'Classic puzzle game of mines and flags'
+  },
+  {
+    title: 'Checkers',
+    emoji: '⚫',
+    route: '/checkers',
+    description: 'Classic board game for two players'
   }
 ];
 
